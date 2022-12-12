@@ -167,7 +167,7 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
 
         //Solving
         IloCplex cplex(Model);
-		cplex.setOut(env.getNullStream());
+		//cplex.setOut(env.getNullStream());
        // cout << cplex.getModel() << endl;
 		
 		if (!cplex.solve()) {
@@ -176,7 +176,7 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
 
         //cout << cplex.getValue(z) << endl ;
         cost = cplex.getObjValue();
-		//cout << "custo otimo: " << cost << endl; 
+		cout << "custo otimo: " << cost << endl; 
 		
 		//Obtendo a solução
 		IloNumArray sol(env, n_sets);
@@ -185,14 +185,15 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
         initializeDS();
 
 		for (int i = 0; i < n_sets; i++){
+            columns_ILP_selection[i] = sol[i];
             
-            if (((int)sol[i]) >= 1){
+            /* if (((int)sol[i]) >= 1){
                 columns_ILP_selection[i] = 1;
             }
             else{
                 columns_ILP_selection[i] = 0;
-            }
-			//cout << columns_ILP_selection[i] << " ";
+            } */
+			cout << columns_ILP_selection[i] << " ";
         }
         
       // cout << endl;
@@ -208,7 +209,7 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
     //==================DEBUG FUNCTIONS=============================
     //printSets(columns_ILP_selection);
     //mergeSetsHammingDistances(columns_ILP_selection, e);
-    //generateMergedClosestString(columns_ILP_selection);
+    generateMergedClosestString(columns_ILP_selection);
     
     return cost;
 }
@@ -297,7 +298,7 @@ vector<int> PCCPSolver(int n, int m, int min_alpha, int max_alpha, vector<vector
             if (sol[i] < 1){
                 sol[i] = 0;
             }			
-            //cout << sol[i] << " ";            
+            cout << sol[i] << " ";            
             closest_string.push_back((int)sol[i]);
         }
         //cout << endl; 
@@ -316,19 +317,7 @@ vector<int> PCCPSolver(int n, int m, int min_alpha, int max_alpha, vector<vector
     return closest_string;
 }
 
-void printAges(){
-    cout << "ages:\n";
-    
-    for (int h: columns_sets_ages)
-    {
-        cout << h << " ";
-    }  
-    cout << endl;
-    cout << "fim ages\n";
-
-}
-
-void columnsSelectorv2(int loops, int max_size)
+void columnsSelector(int loops, int max_size)
 {
     srand(time(0));
     int set, i, j, l;
@@ -395,93 +384,16 @@ void columnsSelectorv2(int loops, int max_size)
         //cout << endl;       
     }
    
-   /*  cout << "colunas por conjunto:\n";
+    cout << "colunas por conjunto:\n";
     for (vector<int> h: columns_sets)
     {
         for(int i: h){
             cout << i << " ";
         }
         cout << endl;
-    }  
+    }     
     
-     */
    // printAges();
-}
-
-void columnsSelector(float columns_partition_size, int loops, int root_index)
-{
-    int set, i, j, l;
-    int n_sets_per_loop = ceil((float) m / columns_partition_size);
-    int total_n_sets = n_sets_per_loop * loops;
-  
-    vector<int> shuffled_sets;
-    vector<int> empty_vec;    
-    srand(time(0));
-    
-    
-    //================= pré processamento ==========================
-    // cout << "conjuntos por loop: " << n_sets_per_loop << endl;
-     
-    //inicializando o vetor de colunas pra poder acessar via indice
-    for (i = 0; i < total_n_sets; i++)
-    {
-        columns_sets.push_back(empty_vec);
-        columns_sets_ages.push_back(0);   
-    }
-    
-    //================= loop da criação dos conjuntos ==========================
-    for (l = 0; l < loops; l++)
-    {        
-        int starting_index = (l* n_sets_per_loop) + root_index;
-
-        //popula o shuffled_sets com os indices dos conjuntos em quantidade igual a columns_partition_size        
-        for(i = starting_index; i < (starting_index + n_sets_per_loop); i++)
-        {
-            //seta as idades dos novos conjuntos para 0
-            for(j = 0; j < columns_partition_size; j++)
-            {
-                shuffled_sets.push_back(i);
-            }
-        }
-
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        shuffle (shuffled_sets.begin(), shuffled_sets.end(), std::default_random_engine(seed));
-        
-        /* cout << "conjuntos shuffled\n";
-        for (int i: shuffled_sets)
-        {
-            cout << i << " ";
-        }
-        cout << endl; */
-
-        
-        /* aqui cada coluna é colocada em um vetor de columns_sets na ordem em que eles aparecem em shuffled_sets, garantindo a aleatoriedade 
-            das colunas nos conjuntos, que cada conjunto nao ultrapassa seu tamanho e que as colunas serao inseridas em ordem crescente */
-        j = 0;            
-        for (i = 0; i < m; i++)
-        {
-            //column = rand() % n_sets_per_loop;       
-            set = shuffled_sets[j];
-            columns_sets[set].push_back(i);
-
-            //sets_using_columns[i].push_back(set);  
-            j++;  
-        }
-
-        shuffled_sets.clear(); 
-        //cout << endl;       
-    }
-   
-   /*  cout << "colunas por conjunto:\n";
-    for (vector<int> h: columns_sets)
-    {
-        for(int i: h){
-            cout << i << " ";
-        }
-        cout << endl;
-    }  
-    
-    printAges(); */
 }
 
 void createSetsUsingColumns()
@@ -504,14 +416,14 @@ void createSetsUsingColumns()
         }
     } 
 
-   /*  cout << "conjuntos por coluna\n";
+    cout << "conjuntos por coluna\n";
     for (vector<int> g: sets_using_columns)
     {
         for(int i: g){
             cout << i << " ";
         }
         cout << endl;
-    }   */
+    }  
 }
 
 vector<vector<int>> constructReducedInstance(vector<int> columns_set)
@@ -629,40 +541,6 @@ void solveSmallInstances()
     } */
 }
 
-void adapt(int max_age)
-{
-    auto iterator_1 = columns_sets.begin();
-    auto iterator_2 = columns_sets_ages.begin();
-
-    vector<int> index_remove;
-
-    for (long unsigned int i = 0; i < columns_sets_ages.size(); i++)
-    {
-        if(columns_ILP_selection[i] == 0)
-        {
-            columns_sets_ages[i] += 1;
-
-            if (columns_sets_ages[i] > max_age){
-                //cout << "deletando o " << i << "com idade " << columns_sets_ages[i] << endl;
-                index_remove.push_back(i);
-            }
-        } 
-        else 
-        {
-            columns_sets_ages[i] = 0;
-        }
-    }
-
-    for (int i = 0; i < (int)index_remove.size(); i++)
-    {
-        //int index = ()
-        columns_sets.erase(iterator_1 +  index_remove[i] - i);
-        columns_sets_ages.erase(iterator_2 + index_remove[i] - i);
-    }
-
-    //printAges();
-}
-
 void generateAlphabetMapping()
 {
     int i;
@@ -675,10 +553,10 @@ void generateAlphabetMapping()
     min_alpha = 0;
     max_alpha = i-1;
 
-    /* for (const auto &item : alphabetMap)
+    for (const auto &item : alphabetMap)
     {
         cout << "[" << item.first << ", " << item.second << "]\n";
-    } */
+    }
 }
 
 void instanceTransformFunc()
@@ -772,52 +650,39 @@ void printSetsSolution(vector<int> solution){
 
 void mainLoop()
 {
-   /*  //se a instância for pequena, a partição não vai dar certo
-    if (m <= 10)
-    { 
-        PCCPSolver(n, m, min_alpha, max_alpha, integer_dataset);
-        return;
-    } */
-    
+  
     int opt, bsf = INF;
     int loops = 0;
     vector<int> bsf_selection;
-
-    auto loop_start = chrono::high_resolution_clock::now();
-    auto loop_end = loop_start;
-    auto loop_cur = chrono::duration_cast<chrono::milliseconds>(loop_end - loop_start);
-
-    while(loop_cur.count() < 60000)
-    //while(loops < 10)
-    {
+    
+    while(loops < 1){
         //================= CMSA Procedures ==========================
         //columnsSelector(2, 1, columns_sets.size());
-        columnsSelectorv2(1, 6);
+        columnsSelector(1, 6);
+        columnsSelector(1, 6);
+        columnsSelector(1, 6);
         createSetsUsingColumns();            
         solveSmallInstances();
         
         opt = setsSelectionSolver(columns_sets.size(), sets_using_columns, columns_sets_ham_distances); 
-        cout << bsf << ", " << opt << endl;
+        //cout << bsf << ", " << opt << endl;
 
         //printSetsSolution(columns_ILP_selection);
 
-        if(opt < bsf){
+        /* if(opt < bsf){
             bsf = opt;
             bsf_selection = columns_ILP_selection;
-        }
-
-        adapt(4);
+        } */
 
         //limpa estruturas de dados que vao ser reutilizadas nos loops
         columns_sets_ham_distances.clear();
         columns_ILP_selection.clear();
         sets_closest_strings.clear();
-        
-        loops += 1;
 
-        loop_end = chrono::high_resolution_clock::now();
-        loop_cur = chrono::duration_cast<chrono::milliseconds>(loop_end - loop_start);
-    }
+        loops += 1;
+    }   
+    
+        
    // printAges();
    //cout << "loops: " << loops << endl; 
    //printSetsSolution(bsf_selection);
@@ -831,8 +696,8 @@ int main()
     instanceTransformFunc();
     
     /* vector<int> t = PCCPSolver(n, m, min_alpha, max_alpha, integer_dataset);
-    getHammingDistance(t); */
-    //return 0;
+    getHammingDistance(t);
+    //return 0; */
 
     auto start = chrono::high_resolution_clock::now(); 
     mainLoop();

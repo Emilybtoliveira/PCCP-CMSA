@@ -35,6 +35,15 @@ void printSets(vector<int> solution)
         cout << endl;
     }  
 
+    cout << "conjuntos por coluna\n";
+    for (vector<int> g: sets_using_columns)
+    {
+        for(int i: g){
+            cout << i << " ";
+        }
+        cout << endl;
+    } 
+/* 
     for(int i = 0; i < (int)solution.size(); i++){        
         cout << "indice " << i << ": " << solution[i] << endl;
         if(solution[i] == 1){
@@ -42,7 +51,7 @@ void printSets(vector<int> solution)
             cout << endl;
         }
     }
-    cout << endl;
+    cout << endl; */
 }
 
 void mergeSetsHammingDistances(vector<int> solution, vector<vector<int>> distances)
@@ -83,8 +92,39 @@ void mergeSetsHammingDistances(vector<int> solution, vector<vector<int>> distanc
     cout << maior_distancia << endl;
 }
 
+void getHammingDistance(vector<int> closest_string)
+{
+    long unsigned int i;
+    int d = 0;
+    int maior_distancia = 0;
+
+    for (vector<int> instance: integer_dataset)
+    {
+        d = 0;
+
+        for (i = 0; i < closest_string.size(); i++)
+        {   
+           // cout << "instancia: " << instance[i]<< " solução: " << closest_string[i] << endl;
+
+            if (instance[i] != closest_string[i])
+            { 
+                d += 1; 
+            } 
+        }
+        
+      //  cout << "distancia: " << d << endl << endl << endl;
+
+        if(d > maior_distancia){
+            maior_distancia = d;
+        }
+    }
+
+    cout << maior_distancia << endl;
+}
+
 void generateMergedClosestString(vector<int> solution){
     vector<int> selected_sets;
+    vector<int> closest_string;
     
     for(int i = 0; i < (int)solution.size(); i++)
     {               
@@ -110,6 +150,30 @@ void generateMergedClosestString(vector<int> solution){
         }
         cout << "]"<< endl;
     }
+    
+
+    for (int i = 0; i < m; i++)  
+    {
+        closest_string.push_back(0);   
+    }
+
+    for(int i: selected_sets)
+    {
+        for(int j = 0; j < (int)columns_sets[i].size(); j++)
+        {
+                //cout << columns_sets[i][j] << " " << sets_closest_strings[i][j] << endl;
+
+                closest_string[columns_sets[i][j]] = sets_closest_strings[i][j];
+        }
+    } 
+
+    cout << "closest string: ";
+    for(int i: closest_string){
+        cout << i << " ";
+    }
+    cout << endl;
+
+    getHammingDistance(closest_string);
 
 }
 
@@ -135,7 +199,7 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
         //Variável de decisão
 		IloIntVarArray x(env, n_sets, 0, 1);
 
-        //Função objetivo
+        //Função objetivo.
 		IloNumVar z(env, 0, IloInfinity, ILOINT);
         IloExpr exp3(env);
         exp3 = z;
@@ -146,10 +210,9 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
             IloExpr exp1(env);
             
             //cout << C[i].size() << endl;   
-        
-            for(long unsigned int s = 0; s < C[i].size(); s++){
+            for(long unsigned int s = 0; s < C[i].size(); s++){               
                 exp1 += x[C[i][s]];
-              //  cout << exp1;
+                //cout << exp1;
             }
 
             Model.add(exp1 == 1);
@@ -185,17 +248,16 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
         initializeDS();
 
 		for (int i = 0; i < n_sets; i++){
-            
-            if (((int)sol[i]) >= 1){
+            columns_ILP_selection[i] = sol[i];
+            /* if (((int)sol[i]) >= 1){
                 columns_ILP_selection[i] = 1;
             }
             else{
                 columns_ILP_selection[i] = 0;
-            }
-			//cout << columns_ILP_selection[i] << " ";
-        }
-        
-      // cout << endl;
+            } */
+			cout << columns_ILP_selection[i] << " ";			
+        }        
+        cout << endl;
 
     } catch (const IloException& e) {
 		cerr << "Exception caught: " << e << endl;
@@ -206,9 +268,8 @@ int setsSelectionSolver(int n_sets, vector<vector<int>> C, vector<vector<int>> e
     env.end();
     
     //==================DEBUG FUNCTIONS=============================
-    //printSets(columns_ILP_selection);
-    //mergeSetsHammingDistances(columns_ILP_selection, e);
-    //generateMergedClosestString(columns_ILP_selection);
+   // printSets(columns_ILP_selection);
+    generateMergedClosestString(columns_ILP_selection);
     
     return cost;
 }
@@ -569,36 +630,6 @@ void computeHammingDistance(vector<vector<int>> reduced_instance, vector<int> cl
     columns_sets_ham_distances.push_back(ham_distance);
 }
 
-void getHammingDistance(vector<int> closest_string)
-{
-    long unsigned int i;
-    int d = 0;
-    int maior_distancia = 0;
-
-    for (vector<int> instance: integer_dataset)
-    {
-        d = 0;
-
-        for (i = 0; i < closest_string.size(); i++)
-        {   
-           // cout << "instancia: " << instance[i]<< " solução: " << closest_string[i] << endl;
-
-            if (instance[i] != closest_string[i])
-            { 
-                d += 1; 
-            } 
-        }
-        
-      //  cout << "distancia: " << d << endl << endl << endl;
-
-        if(d > maior_distancia){
-            maior_distancia = d;
-        }
-    }
-
-    cout << maior_distancia << endl;
-}
-
 void solveSmallInstances()
 {
     vector<int> empty_vec;
@@ -700,7 +731,7 @@ void instanceTransformFunc()
         for(int inteiro: j){
             cout << inteiro << " ";
         }
-        cout << "\n";
+        cout << "\n\n";
     } */
 }
 
@@ -831,8 +862,8 @@ int main()
     instanceTransformFunc();
     
     /* vector<int> t = PCCPSolver(n, m, min_alpha, max_alpha, integer_dataset);
-    getHammingDistance(t); */
-    //return 0;
+    getHammingDistance(t);
+    return 0; */
 
     auto start = chrono::high_resolution_clock::now(); 
     mainLoop();
